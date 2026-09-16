@@ -69,6 +69,10 @@ class ScanSequenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported bases"):
             scan_sequence("ABCZ", guide_length=2, pam="NGG")
 
+    def test_rejects_non_integer_guide_lengths(self):
+        with self.assertRaisesRegex(ValueError, "guide_length must be an integer"):
+            scan_sequence("AAAATGG", guide_length=4.5, pam="NGG")
+
 
 if __name__ == "__main__":
     unittest.main()

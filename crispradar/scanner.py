@@ -59,6 +59,9 @@ def reverse_complement(sequence: str) -> str:
 
 
 def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateGuide]:
+    if not isinstance(guide_length, int) or isinstance(guide_length, bool):
+        raise ValueError("guide_length must be an integer")
+
     if guide_length <= 0:
         raise ValueError("guide_length must be a positive integer")
 
