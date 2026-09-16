@@ -53,9 +53,12 @@ class CandidateGuide:
 
 
 def reverse_complement(sequence: str) -> str:
+    if not isinstance(sequence, str):
+        raise ValueError("sequence must be a string")
+
     normalized = sequence.upper()
     _validate_bases(normalized, "sequence")
-    return normalized.translate(COMPLEMENTS)[::-1]
+    return _reverse_complement_validated(normalized)
 
 
 def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateGuide]:
@@ -85,7 +88,7 @@ def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateG
         _scan_strand(normalized_sequence, guide_length, normalized_pam, strand="+")
     )
 
-    reverse_sequence = reverse_complement(normalized_sequence)
+    reverse_sequence = _reverse_complement_validated(normalized_sequence)
     sequence_length = len(normalized_sequence)
     for candidate in _scan_strand(reverse_sequence, guide_length, normalized_pam, strand="-"):
         reverse_guide_start = sequence_length - candidate.guide_end
@@ -141,6 +144,10 @@ def _pam_matches(sequence_fragment: str, pam: str) -> bool:
         sequence_base in IUPAC_BASES[pam_base]
         for sequence_base, pam_base in zip(sequence_fragment, pam)
     )
+
+
+def _reverse_complement_validated(sequence: str) -> str:
+    return sequence.translate(COMPLEMENTS)[::-1]
 
 
 def _validate_bases(sequence: str, field_name: str) -> None:

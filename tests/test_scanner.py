@@ -65,6 +65,10 @@ class ScanSequenceTests(unittest.TestCase):
     def test_reverse_complement_supports_degenerate_bases(self):
         self.assertEqual(reverse_complement("ATGRYN"), "NRYCAT")
 
+    def test_reverse_complement_rejects_non_string_sequences(self):
+        with self.assertRaisesRegex(ValueError, "sequence must be a string"):
+            reverse_complement(None)
+
     def test_rejects_invalid_bases(self):
         with self.assertRaisesRegex(ValueError, "unsupported bases"):
             scan_sequence("ABCZ", guide_length=2, pam="NGG")
