@@ -79,6 +79,12 @@ class ScanSequenceTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "guide_length must be an integer"):
                     scan_sequence("AAAATGG", guide_length=invalid_guide_length, pam="NGG")
 
+    def test_rejects_non_positive_guide_lengths(self):
+        for invalid_guide_length in (0, -1):
+            with self.subTest(invalid_guide_length=invalid_guide_length):
+                with self.assertRaisesRegex(ValueError, "guide_length must be a positive integer"):
+                    scan_sequence("AAAATGG", guide_length=invalid_guide_length, pam="NGG")
+
     def test_rejects_invalid_pam_bases(self):
         with self.assertRaisesRegex(ValueError, "unsupported bases"):
             scan_sequence("AAAATGG", guide_length=4, pam="NGZ")
