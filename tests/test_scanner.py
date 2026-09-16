@@ -62,6 +62,24 @@ class ScanSequenceTests(unittest.TestCase):
             ],
         )
 
+    def test_scans_reverse_complement_strand_with_degenerate_pam(self):
+        matches = scan_sequence("CCAAAAA", guide_length=4, pam="TGN")
+
+        self.assertEqual(
+            matches,
+            [
+                CandidateGuide(
+                    guide="TTTT",
+                    pam="TGG",
+                    guide_start=3,
+                    guide_end=7,
+                    pam_start=0,
+                    pam_end=3,
+                    strand="-",
+                )
+            ],
+        )
+
     def test_returns_no_matches_when_sequence_is_too_short(self):
         self.assertEqual(scan_sequence("AAAA", guide_length=4, pam="NGG"), [])
 
