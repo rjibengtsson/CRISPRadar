@@ -62,6 +62,9 @@ class ScanSequenceTests(unittest.TestCase):
             ],
         )
 
+    def test_returns_no_matches_when_sequence_is_too_short(self):
+        self.assertEqual(scan_sequence("AAAA", guide_length=4, pam="NGG"), [])
+
     def test_reverse_complement_supports_degenerate_bases(self):
         self.assertEqual(reverse_complement("ATGRYN"), "NRYCAT")
 

@@ -83,6 +83,9 @@ def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateG
     _validate_bases(normalized_sequence, "sequence")
     _validate_bases(normalized_pam, "pam")
 
+    if len(normalized_sequence) < guide_length + len(normalized_pam):
+        return []
+
     matches: list[CandidateGuide] = []
     matches.extend(
         _scan_strand(normalized_sequence, guide_length, normalized_pam, strand="+")
