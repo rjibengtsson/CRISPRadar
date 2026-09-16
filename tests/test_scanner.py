@@ -89,6 +89,10 @@ class ScanSequenceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unsupported bases"):
             scan_sequence("AAAATGG", guide_length=4, pam="NGZ")
 
+    def test_rejects_empty_pam(self):
+        with self.assertRaisesRegex(ValueError, "pam must not be empty"):
+            scan_sequence("AAAATGG", guide_length=4, pam="")
+
     def test_rejects_non_string_sequence_or_pam(self):
         with self.assertRaisesRegex(ValueError, "sequence must be a string"):
             scan_sequence(None, guide_length=4, pam="NGG")
