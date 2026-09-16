@@ -129,7 +129,7 @@ def _scan_strand(
 
 def _pam_matches(sequence_fragment: str, pam: str) -> bool:
     return all(
-        bool(IUPAC_BASES[sequence_base] & IUPAC_BASES[pam_base])
+        sequence_base in IUPAC_BASES[pam_base]
         for sequence_base, pam_base in zip(sequence_fragment, pam)
     )
 

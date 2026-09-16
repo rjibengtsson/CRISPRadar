@@ -39,6 +39,11 @@ class ScanSequenceTests(unittest.TestCase):
             [("AAAA", "TGG")],
         )
 
+    def test_ambiguous_sequence_bases_do_not_act_as_pam_wildcards(self):
+        matches = scan_sequence("AAAANGG", guide_length=4, pam="AGG")
+
+        self.assertEqual(matches, [])
+
     def test_scans_reverse_complement_strand(self):
         matches = scan_sequence("CCTAAAA", guide_length=4, pam="AGG")
 
