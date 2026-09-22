@@ -1,5 +1,5 @@
 """
-This script is used to get the location of gRNA sequnece from the truth set (from PNAS paper)
+This script is used to get the location of gRNA sequnece from the truth set (from PNAS paper and Scientific reports paper).
 """
 
 import pandas as pd
@@ -60,16 +60,28 @@ def main():
     output_dir = Path("tests/data")
 
     # Load the truth set CSV file
-    truth_set_csv = "tests/data/Table_S1_LTR_gRNAs_offtargets.csv"
+    truth_set_csv = "tests/data/LTR_guide_sequences.csv"
     df = pd.read_csv(truth_set_csv, header=0)
-    df = df[['Direction', 'No.', 'gRNA_sequence']]
-    df["gRNA_sequence"] = df["gRNA_sequence"].str[:-3]
 
-    # generate_guide_fasta(df, "tests/data")
+    df = df.rename(columns={
+        "Oligo ID": 'No.',
+        "Sequence (5' to 3')": 'gRNA_sequence'
+    })
+
+    df = df[['Target name', 'Direction', 'No.', 'gRNA_sequence']]
+    df["gRNA_sequence"] = df["gRNA_sequence"].str[4:]
+
+    for index, row in df.iterrows():
+        if row['Direction'] == 'Sense':
+            df.at[index, 'gRNA_sequence'] = str(Seq(row['gRNA_sequence'])[1:])
+        elif row['Direction'] == 'Antisense':
+            df.at[index, 'gRNA_sequence'] = str(Seq(row['gRNA_sequence'])[:-1])
+
+    generate_guide_fasta(df, "tests/data")
 
 
     # Define the BLAST database path (make sure to create this database beforehand)
-    db_path = "tests/data/AF105229.1_ltr"  # Replace with the path to your BLAST database
+    db_path = "tests/data/AF324493.2_ltr"  # Replace with the path to your BLAST database
 
     query_fasta = output_dir / "truth_guides.fasta"
     blast_output_file = output_dir / "truth_guides_blastn_results.txt"
