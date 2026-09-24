@@ -10,10 +10,16 @@ from Bio.SeqRecord import SeqRecord
 from pathlib import Path
 
 
-def run_blastn_and_format(query_fasta, db_path, output_file, pident=100, cov_perc=100):
+def run_blastn_and_format(query_fasta, db_path, output_file, pident=85, cov_perc=80):
     blastn_cmd = [
         "blastn",
         "-task", "blastn-short",
+        "-word_size", "7",
+        # "-reward", "2",
+        # "-penalty", "-3",
+        # "-gapopen", "5",
+        # "-gapextend", "2",
+        # "-evalue", "0.05",
         "-query", f"{query_fasta}",
         "-db", f"{db_path}",
         "-max_target_seqs", "100",
@@ -27,7 +33,7 @@ def run_blastn_and_format(query_fasta, db_path, output_file, pident=100, cov_per
     df = pd.read_csv(output_file, sep="\t", header=None,
                       names=["qseqid", "sseqid", "pident", "length", "mismatch", "gapopen",
                              "qstart", "qend", "sstart", "send", "evalue", "bitscore"])
-    df = df.loc[df.groupby("qseqid")["bitscore"].idxmax()]
+    # df = df.loc[df.groupby("qseqid")["bitscore"].idxmax()]
 
     # map qseqid -> guide sequence from the query FASTA
     seq_map = {rec.id: str(rec.seq) for rec in SeqIO.parse(query_fasta, "fasta")}
@@ -71,11 +77,11 @@ def main():
     df = df[['Target name', 'Direction', 'No.', 'gRNA_sequence']]
     df["gRNA_sequence"] = df["gRNA_sequence"].str[4:]
 
-    for index, row in df.iterrows():
-        if row['Direction'] == 'Sense':
-            df.at[index, 'gRNA_sequence'] = str(Seq(row['gRNA_sequence'])[1:])
-        elif row['Direction'] == 'Antisense':
-            df.at[index, 'gRNA_sequence'] = str(Seq(row['gRNA_sequence'])[:-1])
+    # for index, row in df.iterrows():
+    #     if row['Direction'] == 'Sense':
+    #         df.at[index, 'gRNA_sequence'] = str(Seq(row['gRNA_sequence'])[1:])
+    #     elif row['Direction'] == 'Antisense':
+    #         df.at[index, 'gRNA_sequence'] = str(Seq(row['gRNA_sequence'])[:-1])
 
     generate_guide_fasta(df, "tests/data")
 
