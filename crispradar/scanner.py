@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 IUPAC_BASES = {
     "A": {"A"},
@@ -43,7 +43,7 @@ COMPLEMENTS = str.maketrans(
 
 @dataclass(frozen=True)
 class CandidateGuide:
-    guide: str
+    target_seq: str
     pam: str
     guide_start: int
     guide_end: int
@@ -61,7 +61,15 @@ def reverse_complement(sequence: str) -> str:
     return _reverse_complement_validated(normalized)
 
 
-def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateGuide]:
+def scan_sequence(
+        sequence: str, 
+        guide_length: int, 
+        pam: str,
+        pam_position: str = "3prime") -> list[CandidateGuide]:
+
+    if pam_position not in {"5prime", "3prime"}:
+        raise ValueError("pam_position must be '5prime' or '3prime'")
+
     if not isinstance(sequence, str):
         raise ValueError("sequence must be a string")
 
@@ -88,19 +96,28 @@ def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateG
 
     matches: list[CandidateGuide] = []
     matches.extend(
-        _scan_strand(normalized_sequence, guide_length, normalized_pam, strand="+")
+        _scan_strand(
+            normalized_sequence, 
+            guide_length, 
+            normalized_pam, 
+            strand="+",
+            pam_position=pam_position
+        )
     )
 
     reverse_sequence = _reverse_complement_validated(normalized_sequence)
     sequence_length = len(normalized_sequence)
-    for candidate in _scan_strand(reverse_sequence, guide_length, normalized_pam, strand="-"):
+    for candidate in _scan_strand(reverse_sequence, 
+                                  guide_length, normalized_pam, 
+                                  strand="-",
+                                  pam_position=pam_position):
         reverse_guide_start = sequence_length - candidate.guide_end
         reverse_guide_end = sequence_length - candidate.guide_start
         reverse_pam_start = sequence_length - candidate.pam_end
         reverse_pam_end = sequence_length - candidate.pam_start
         matches.append(
             CandidateGuide(
-                guide=candidate.guide,
+                target_seq=candidate.target_seq,
                 pam=candidate.pam,
                 guide_start=reverse_guide_start,
                 guide_end=reverse_guide_end,
@@ -110,7 +127,20 @@ def scan_sequence(sequence: str, guide_length: int, pam: str) -> list[CandidateG
             )
         )
 
-    return sorted(matches, key=lambda match: (match.guide_start, match.pam_start, match.strand))
+    one_based_matches = [_to_one_based(match) for match in matches]
+    return sorted(
+        one_based_matches,
+        key=lambda match: (match.guide_start, match.pam_start, match.strand),
+    )
+
+
+def _to_one_based(candidate: CandidateGuide) -> CandidateGuide:
+    # Scanning uses 0-based half-open coordinates; report 1-based inclusive.
+    return replace(
+        candidate,
+        guide_start=candidate.guide_start + 1,
+        pam_start=candidate.pam_start + 1,
+    )
 
 
 def _scan_strand(
@@ -118,23 +148,36 @@ def _scan_strand(
     guide_length: int,
     pam: str,
     strand: str,
+    pam_position: str = "3prime"
 ) -> list[CandidateGuide]:
     pam_length = len(pam)
     window_length = guide_length + pam_length
+    pam_first = pam_position == "5prime"
     matches: list[CandidateGuide] = []
 
+
     for start in range(0, len(sequence) - window_length + 1):
-        guide = sequence[start : start + guide_length]
-        pam_sequence = sequence[start + guide_length : start + window_length]
+        # Only the offsets within the window change; the window itself is the same.
+        if pam_first:
+            pam_start = start
+            guide_start = start + pam_length
+        else:
+            guide_start = start
+            pam_start = start + guide_length
+
+        guide_end = guide_start + guide_length
+        pam_end = pam_start + pam_length
+
+        pam_sequence = sequence[pam_start:pam_end]
         if _pam_matches(pam_sequence, pam):
             matches.append(
                 CandidateGuide(
-                    guide=guide,
+                    target_seq=sequence[guide_start:guide_end],
                     pam=pam_sequence,
-                    guide_start=start,
-                    guide_end=start + guide_length,
-                    pam_start=start + guide_length,
-                    pam_end=start + window_length,
+                    guide_start=guide_start,
+                    guide_end=guide_end,
+                    pam_start=pam_start,
+                    pam_end=pam_end,
                     strand=strand,
                 )
             )

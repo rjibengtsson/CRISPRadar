@@ -11,20 +11,20 @@ class ScanSequenceTests(unittest.TestCase):
             [match for match in matches if match.strand == "+"],
             [
                 CandidateGuide(
-                    guide="AAAA",
+                    target_seq="AAAA",
                     pam="AGG",
-                    guide_start=0,
+                    guide_start=1,
                     guide_end=4,
-                    pam_start=4,
+                    pam_start=5,
                     pam_end=7,
                     strand="+",
                 ),
                 CandidateGuide(
-                    guide="TTTT",
+                    target_seq="TTTT",
                     pam="AGG",
-                    guide_start=7,
+                    guide_start=8,
                     guide_end=11,
-                    pam_start=11,
+                    pam_start=12,
                     pam_end=14,
                     strand="+",
                 ),
@@ -35,7 +35,7 @@ class ScanSequenceTests(unittest.TestCase):
         matches = scan_sequence("AAAATGGCCCCAAA", guide_length=4, pam="TGN")
 
         self.assertEqual(
-            [(match.guide, match.pam) for match in matches if match.strand == "+"],
+            [(match.target_seq, match.pam) for match in matches if match.strand == "+"],
             [("AAAA", "TGG")],
         )
 
@@ -51,11 +51,11 @@ class ScanSequenceTests(unittest.TestCase):
             matches,
             [
                 CandidateGuide(
-                    guide="TTTT",
+                    target_seq="TTTT",
                     pam="AGG",
-                    guide_start=3,
+                    guide_start=4,
                     guide_end=7,
-                    pam_start=0,
+                    pam_start=1,
                     pam_end=3,
                     strand="-",
                 )
@@ -69,11 +69,11 @@ class ScanSequenceTests(unittest.TestCase):
             matches,
             [
                 CandidateGuide(
-                    guide="TTTT",
+                    target_seq="TTTT",
                     pam="TGG",
-                    guide_start=3,
+                    guide_start=4,
                     guide_end=7,
-                    pam_start=0,
+                    pam_start=1,
                     pam_end=3,
                     strand="-",
                 )
